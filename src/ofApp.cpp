@@ -159,13 +159,13 @@ void ofApp::draw(){
         
     }else{
         //blobs
-        for (int i = 0; i < contourFinder.nBlobs; i++) {
-//            ofLog(OF_LOG_NOTICE, "blobs draw");
-            ofSetColor(255);
-            contourFinder.blobs[i].draw(400-dx, 100);
-        }
+//        for (int i = 0; i < contourFinder.nBlobs; i++) {
+//            ofSetColor(255);
+//            contourFinder.blobs[i].draw(400-dx, 100);
+//        }
         
-        ofImageEdge.draw(400-dx, 100);
+//        ofImageEdge.draw(400-dx, 100);
+        grayRivers_cut.draw(400-dx, 100);
         
         ofSetHexColor(0xffffff);
         stringstream captureStr;
@@ -236,8 +236,8 @@ void ofApp::matching(){
     capturedEdge.setROI(cut_x, cut_y, cut_w, cut_h);
     ofImageEdge.setFromPixels(capturedEdge.getRoiPixelsRef());
     
-    cutFrame.x = 200;
-    cutFrame.y = 200;
+    cutFrame.x = grayRivers[0].width/2;
+    cutFrame.y = grayRivers[0].height/2;
     cutFrame.width = 100;
     cutFrame.height = 100;
     grayRivers_cut.allocate(cutFrame.width, cutFrame.height);
@@ -249,7 +249,7 @@ void ofApp::matching(){
     //blobs
     contourFinder.findContours(ofImageEdge, 20, (cut_w*cut_h), 10, true);
     
-    for (int i=0; i<6; i++) {
+    for (int i=0; i<1; i++) {
         
 //        cv::Mat mat1 = cv::cvarrToMat(edgeRivers[i].getCvImage());
 //        cv::Mat mat2 = cv::cvarrToMat(ofImageEdge.getCvImage());
@@ -277,17 +277,21 @@ void ofApp::matching(){
 //         ofLog(OF_LOG_NOTICE, "getCvImage width:%lf, height:%lf", ofImageEdge.getCvImage()->width, ofImageEdge.getCvImage()->height);
         
         result = cvCreateImage(cvSize(grayRivers[0].width - grayRivers_cut.width + 1, grayRivers[0].height - grayRivers_cut.height + 1), 32, 1);
-        cvMatchTemplate(grayRivers[0].getCvImage(), grayRivers_cut.getCvImage(), result, CV_TM_SQDIFF);
+        cvMatchTemplate(grayRivers[0].getCvImage(), grayRivers_cut.getCvImage(), result, CV_TM_CCORR_NORMED);
         
 //        cv::matchTemplate(mat1, mat2, result, CV_TM_CCOEFF);
         //    cv::matchTemplate(mat1, mat2, result, CV_TM_SQDIFF_NORMED);
         //    cv::matchTemplate(mat1, mat2, result, CV_TM_CCORR_NORMED);
         //    cv::minMaxLoc(result, &minVal, NULL);
 //            cv::minMaxLoc(result, NULL, &maxVal);
-        cvMinMaxLoc(result, &minVal, &maxVal);
+        CvPoint minLoc, maxLoc;
+        cvMinMaxLoc(result, &minVal, &maxVal, &minLoc, &maxLoc, 0);
         
         //    ofLog(OF_LOG_NOTICE, "minVal: %lf", minVal);
+        ofLog(OF_LOG_NOTICE, "%d番目のminVal: %lf", i, minVal);
         ofLog(OF_LOG_NOTICE, "%d番目のmaxVal: %lf", i, maxVal);
+        ofLog(OF_LOG_NOTICE, "%d番目のminLoc: (%lf,%lf)", i, minLoc.x, minLoc.y);
+        ofLog(OF_LOG_NOTICE, "%d番目のmaxLoc: (%lf,%lf)", i, maxLoc.x, maxLoc.y);
         if(mostmaxVal < maxVal){
             mostmaxVal = maxVal;
             mostmaxIndex = i;
