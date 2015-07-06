@@ -4,15 +4,27 @@
 
 //--------------------------------------------------------------
 void ofApp::setup(){
+    ofEnableAlphaBlending();
+    ofSetFullscreen(true);
+    ofHideCursor();
+    
     //音声ファイル
     captureSound.loadSound("capture.wav");
     
     flagDrawimage = false;
     isMatchCompleted = false;
     
-    threshold = 24;
+    //背景差分
+//    threshold = 24;
+//    bgImage.loadImage("./background.jpg");
+//    testImage.setImageType(OF_IMAGE_GRAYSCALE);
+//    grayBg.setFromPixels(bgImage.getPixels(), bgImage.width, bgImage.height);
+//    grayDiff.allocate(bgImage.width/2, bgImage.height/2);
     
+    //counter
     count = 0;
+    count_mapshowing = 0;
+    
     dx = 0;
     dy = 0;
 
@@ -20,10 +32,10 @@ void ofApp::setup(){
     cameraSize_h = 300;
     cameraSmallSize_w = cameraSize_w;
     cameraSmallSize_h = cameraSize_h;
-    riversImgSize_w = 1920;
+    riversImgSize_w = 1440;
     riversImgSize_h = 1080;
-    riversSmallSize_w = riversImgSize_w / 1;
-    riversSmallSize_h = riversImgSize_h / 1;
+    riversSmallSize_w = riversImgSize_w;
+    riversSmallSize_h = riversImgSize_h;
     
     cut_x = 100;
     cut_y = 50;
@@ -47,15 +59,15 @@ void ofApp::setup(){
     
     //video
     videoGrabber.initGrabber(cameraSize_w, cameraSize_h);
+
     
     //河川画像, エッジ検出
     for (int i=0; i<6; i++) {
         string strNum = ofToString(i);
-        string loadStr = "./rivers/rivers";
-        string loadStr2 = ".png";
+        string loadStr = "./rivers/clipimages/rivers";
+        string loadStr2 = ".jpg";
         loadStr += strNum;
         loadStr += loadStr2;
-//        ofLog(OF_LOG_NOTICE, loadStr);
         
         riversImage[i].loadImage(loadStr);
         riversImage[i].resize(riversSmallSize_w, riversSmallSize_h);
@@ -68,165 +80,223 @@ void ofApp::setup(){
         cvCanny(grayRivers[i].getCvImage(), edgeRivers[i].getCvImage(), 30, 70);
     }
     
-    //背景との差分
-    //    grayDiff.absDiff(grayBg, grayImage);
-    //    grayDiff.threshold(threshold);
-    
-    //エッジ
-    //    cvCanny(grayImage.getCvImage(), edgeImage.getCvImage(), 30, 70);
-    
-    //特徴点検出器
-    //    detector1 = cv::FeatureDetector::create("SURF");
-    //    detector2 = cv::FeatureDetector::create("SURF");
-    
-    //特徴量検出器
-    //    extractor1 = cv::DescriptorExtractor::create("SURF");
-    //    extractor2 = cv::DescriptorExtractor::create("SURF");
-    
-    //マッチング
-    //    matcher = cv::DescriptorMatcher::create("BruteForce");
-    
-    //テンプレートマッチング
-    //    for(int i=0; i<6; i++){
-    //        tmach[i] = *cvCreateImage(cvSize(riversSmallSize_w, riversSmallSize_h), 32, 1);
-    //    }
+    //河川画像，
+    rivborImage.loadImage("./rivers/riversborder.gif");
+    rivborImage.setImageType(OF_IMAGE_GRAYSCALE);
+    grayRivBor.setFromPixels(rivborImage.getPixels(), 2041, 1216);
     
     //地球
     ofSetVerticalSync(true);
     
     glEnable(GL_DEPTH_TEST); //enable depth comparisons and update the depth buffer
     ofDisableArbTex(); //needed for textures to work with gluSphere
-    //    earth.loadImage("palm.jpg");
-    earth.loadImage("earth5.jpg");
+    earth.loadImage("earth6_blue.jpg");
     
     //prepare quadric for sphere
     quadric = gluNewQuadric();
     gluQuadricTexture(quadric, GL_TRUE);
     gluQuadricNormals(quadric, GLU_SMOOTH);
+    
+    //Serial
+    ar.setup(1, 9600);
+//    isSetupArduino = false;
+//    arduino.connect("/dev/cu.usbmodem1421");
+//    ofAddListener(arduino.EInitialized, this, &ofApp::setupArduino);
+    
+    //Google Map
+    gMapView.setup();
+    currentArea = areaList[0]; //南米スタート
 }
 
 //--------------------------------------------------------------
 void ofApp::update(){
     //video
     videoGrabber.update();
-    
     if(videoGrabber.isFrameNew()){
-//        cv::Mat frame(videoGrabber.getHeight(), videoGrabber.getWidth(), CV_8UC3, videoGrabber.getPixels());
-//        cvtColor(frame, frame, CV_RGB2BGR);
-        
-        videoImage.setFromPixels(videoGrabber.getPixels(), cameraSmallSize_w, cameraSmallSize_h);
-        grayImage = videoImage;
-        edgeImage = videoImage;
-        //grayImage.mirror(false, true);
-        //エッジ抽出
-        cvSmooth(grayImage.getCvImage(), grayImage.getCvImage());
-        cvCanny(grayImage.getCvImage(), edgeImage.getCvImage(), 15, 70);
+        captureImage();
     }
     
-    //特徴点
-    //    matImg = cv::Mat(edgeImage.getCvImage());
-    //    matImg2 = cv::Mat(edgeRivers.getCvImage());
-    //    detector1->detect(matImg, keypoints1);
-    //    detector2->detect(matImg2, keypoints2);
+    //Serial
+    if (ofGetFrameNum() > 60 * 5) {
+//            ar.update();
+        //    arduino.update();
+    }
     
-    //特徴量
-    //    cv::Mat descriptor1;
-    //    extractor1->compute(matImg, keypoints1, descriptor1);
-    //
-    //    cv::Mat descriptor2;
-    //    extractor2->compute(matImg2, keypoints2, descriptor2);
+    //Google Map
+    gMapView.update();
+}
+
+void ofApp::setupArduino(const int &version) {
+    ofRemoveListener(arduino.EInitialized, this, &ofApp::setupArduino);
+//    arduino.sendAnalogPinReporting(2, ARD_ANALOG);
+    arduino.sendDigitalPinMode(2, ARD_INPUT);
+    isSetupArduino = true;
+    ofLog(OF_LOG_NOTICE, "setupArduino");
+}
+
+void ofApp::updateArduino() {
+    arduino.update();
     
-    //マッチング
-    //    matcher->match(descriptor1, descriptor2, dmatch);
+    if(!isSetupArduino) {
+        ofDrawBitmapString("arduino no ready", 500, 600);
+    }else {
+//        ofDrawBitmapString(ofToString(arduino.getAnalog(2)), 500, 600);
+        ofDrawBitmapString(ofToString(arduino.getDigital(1)), 500, 600);
+    }
 }
 
 //--------------------------------------------------------------
 void ofApp::draw(){
     ofBackground(0, 0, 0);
-    
-    ofSetColor(200, 10, 200);
-    ofNoFill();
-    ofRect(20+cut_x, 20+cameraSmallSize_h+100+cut_y, cut_w, cut_h);
-    
-    ofSetColor(0, 191, 255);
-    edgeImage.draw(20, 20+cameraSmallSize_h+100);
-    
-    //背景との差分
     ofSetHexColor(0xffffff);
+    
+    //Serial
+    if(ofGetFrameNum()%60) {
+        ofDrawBitmapString(ofToString(ar.data), 500, 600);
+    }
+    
+//    ofSetColor(200, 10, 200);
+//    ofNoFill();
+//    ofRect(20+cut_x, 20+cameraSmallSize_h+100+cut_y, cut_w, cut_h);
+//
+    //camera
+//    edgeImage.draw(20, 20+cameraSmallSize_h+100);
     
     //エッジ
     if(!flagDrawimage){
-        
+        showEarth(ofGetWidth()/2, ofGetHeight()/2, 0, 150);
     }else{
-        //blobs
-//        for (int i = 0; i < contourFinder.nBlobs; i++) {
-//            ofSetColor(255);
-//            contourFinder.blobs[i].draw(400-dx, 100);
-//        }
         
 //        ofImageEdge.draw(400-dx, 100);
-        grayRivers_cut.draw(400-dx, 100);
-        
-        ofSetHexColor(0xffffff);
-        stringstream captureStr;
-        captureStr << "Capturing is success." << endl;
-        ofDrawBitmapString(captureStr.str(), 500, 50);
+//        grayRivers_cut.draw(400-dx, 100);
         
         count++;
-        if(count > 40){
+        if(count > 0){
             
             //キャプチャ後のアニメーション
-            if(dx < 380){
-                dx = dx + 20;
+            if(dx < 460){
+                showEarth(ofGetWidth()/2, ofGetHeight()/2, dx, 150);
+                dx = dx + 10;
                 
             }else{
                 if(count < 200){
+                    
                     if(count % 2 == 0){
                         ofSetHexColor(0xffffff);
                         stringstream captureStr;
                         captureStr << "Searching..." << endl;
                         ofDrawBitmapString(captureStr.str(), 500, 50);
                     }
-                    showEarth();
                 }else{
                     if(isMatchCompleted){
-                        showMatchImage();
-                        ofSetHexColor(0xffffff);
-                        stringstream name;
-                        name << "matched " << areaName[mostmaxIndex] << endl;
-                        ofDrawBitmapString(name.str(), 450, 150);
+                        count_mapshowing++;
+                        if(count_mapshowing < 60*3) {
+                            showMatchImage();
+                            ofSetHexColor(0xffffff);
+//                            stringstream name;
+//                            name << "matched " << areaList[mostmaxIndex] << endl;
+//                            ofDrawBitmapString(name.str(), 450, 150);
+                        }else {
+                            int indexOfHtml = gMapView.classifyDetectedPoint(subjectLocation.x, subjectLocation.y);
+                            gMapView.loadMap(, indexOfHtml);
+                            gMapView.showMap();
+                        }
                     }
+                    
+                    //矩形
+                    ofSetColor(200, 10, 200);
+                    ofNoFill();
+                    float w = grayTestImage.width/3;
+                    ofRect(50 + grayTestImage.width/2 - w/2, 50 + grayTestImage.height/2 - w/2, w, w);
+                    
+                    //掌全体
+                    ofSetColor(0xffffff);
+                    grayTestImage.resize(2448/10, 3264/10);
+                    grayTestImage.draw(50, 50);
+                    //
+                    //            //blobs
+                    //            ofLog(OF_LOG_NOTICE, "nBlobs:%d", contourTest.nBlobs);
+                    //            for (int i = 0; i < contourTest.nBlobs; i++) {
+                    //                ofSetColor(255);
+                    //                contourTest.blobs[i].draw(100, 50+dx);
+                    //            }
+                    
+                    //            //切り抜き画像
+                    //            ofSetColor(0xffffff);
+                    //            grayCutImage.draw(400-dx, 50);
+                    
+                    showEarth(200, ofGetHeight()/2 + 150, 0, 80);
                 }
             }
         }else{
+            
         }
-    }
-    
-    //特徴点
-    //掌画像
-    for (vector<cv::KeyPoint>::iterator itk = keypoints1.begin(); itk != keypoints1.end(); itk++) {
-        ofSetColor(31, 63, 255);
-        ofCircle(20+cameraSmallSize_w + itk->pt.x, 20 + itk->pt.y, 2);
-    }
-    //河川画像
-    for (vector<cv::KeyPoint>::iterator itk = keypoints2.begin(); itk != keypoints2.end(); itk++) {
-        //        ofCircle(20+cameraSmallSize_w*2 + itk->pt.x, 20 + itk->pt.y, 2);
     }
 }
 
-void ofApp::showEarth(){
+void ofApp::showEarth(float x, float y, float z, float r){
+    //球
+    earth.getTextureReference().unbind();
+    sphere.set(r, 20);
+    sphere.setPosition(x, y, z);
+    sphere.rotate(ofGetFrameNum(), 0, 1.0, 0);
+    sphere.drawWireframe();
+    
     //地球
-    
-    //change origin to center
-    ofTranslate(ofGetWidth()/2 + 200, ofGetHeight()/2, 0);
-    
-    //rotate sphere over time
+    ofTranslate(x, y, z);
     ofRotateY(ofGetFrameNum());
-    ofRotateX(-90); //north pole facing up
+    ofRotateX(-90);
     
-    //bind and draw texture
     earth.getTextureReference().bind();
-    gluSphere(quadric, 150, 200, 200);
+    gluSphere(quadric, r, 200, 200);
+}
+
+void ofApp::captureImage() {
+    videoImage.setFromPixels(videoGrabber.getPixels(), cameraSmallSize_w, cameraSmallSize_h);
+    grayImage = videoImage;
+    edgeImage = videoImage;
+    
+    //エッジ抽出
+    cvSmooth(grayImage.getCvImage(), grayImage.getCvImage());
+    cvCanny(grayImage.getCvImage(), edgeImage.getCvImage(), 15, 70);
+}
+
+//背景差分
+void ofApp::diffCapturedImage() {
+    //背景との差分
+    ofLog(OF_LOG_NOTICE, "grayBg(%d,%d)\n", grayBg.width, grayBg.height);
+    ofLog(OF_LOG_NOTICE, "grayTestImage(%d,%d)\n", grayTestImage.width, grayTestImage.height);
+    grayDiff.absDiff(grayBg, grayTestImage);
+    grayDiff.threshold(threshold);
+}
+
+//切り抜き
+void ofApp::cutCapturedImage() {
+    //掌画像　初期設定
+    testImage.loadImage("./palm.jpg");
+    testImage.setImageType(OF_IMAGE_GRAYSCALE);
+    grayTestImage.allocate(testImage.width, testImage.height);
+    grayTestImage.setFromPixels(testImage.getPixels(), testImage.width, testImage.height);
+    ofLog(OF_LOG_NOTICE, "grayTestImage(%d,%d)", grayTestImage.width, grayTestImage.height);
+    
+    cutW = 2448/3;
+    cutH = cutW;
+    grayCutImage.allocate(cutW, cutH);
+    grayTestImage.setROI(grayTestImage.width/2 - cutW/2, grayTestImage.height/2 - cutH/2, cutW, cutH);
+    grayCutImage = grayTestImage;
+    grayTestImage.resetROI();
+    
+    grayCutImage.resize(grayCutImage.width/4, grayCutImage.height/4);
+    
+    //輪郭抽出
+    grayCutEdge.allocate(grayCutImage.width, grayCutImage.height);
+    ofLog(OF_LOG_NOTICE, "grayCutImage(%d,%d)", grayCutImage.width, grayCutImage.height);
+    grayCutEdge = grayCutImage;
+    cvSmooth(grayCutImage.getCvImage(), grayCutImage.getCvImage());
+    cvCanny(grayCutImage.getCvImage(), grayCutEdge.getCvImage(), 15, 70);
+    
+    //blobs
+    contourTest.findContours(grayCutEdge, 10, (grayCutImage.width*grayCutImage.height)/2, 10, true);
 }
 
 void ofApp::matching(){
@@ -251,47 +321,23 @@ void ofApp::matching(){
     
     for (int i=0; i<1; i++) {
         
-//        cv::Mat mat1 = cv::cvarrToMat(edgeRivers[i].getCvImage());
-//        cv::Mat mat2 = cv::cvarrToMat(ofImageEdge.getCvImage());
-//        cv::Mat mat1 = edgeRivers[i].getCvImage();
-//        cv::Mat mat2 = ofImageEdge.getCvImage();
-//32
-//        ofLog(OF_LOG_NOTICE, "mat1 width:%lf, height:%lf", mat1.cols, mat1.rows);
-//        ofLog(OF_LOG_NOTICE, "mat2 width:%lf, height:%lf", mat2.cols, mat2.rows);
+        result = cvCreateImage(cvSize(grayRivers[i].width - grayRivers_cut.width + 1, grayRivers[i].height - grayRivers_cut.height + 1), 32, 1);
+//        cvMatchTemplate(grayRivers[i].getCvImage(), grayRivers_cut.getCvImage(), result, CV_TM_CCORR_NORMED);
+        grayCutImage.resize(100, 100);
+//        grayRivBor.resize(grayRivBor.width/2, grayRivBor.height/2);
+//        cvMatchTemplate(grayRivBor.getCvImage(), grayCutImage.getCvImage(), result, CV_TM_CCORR_NORMED);
+        cvMatchTemplate(grayRivers[i].getCvImage(), grayCutImage.getCvImage(), result, CV_TM_CCORR_NORMED);
         
-//        result = edgeRivers[i].getCvImage();
-        
-//        cv::Mat mat1 = edgeRivers[i].getCvImage();
-//        cv::Mat mat2 = ofImageEdge.getCvImage();
-        
-//        cv::Mat mat1;
-//        mat1 = ofxCv::toCv(edgeRivers[i]);
-//        cv::Mat mat2;
-//        mat2 = ofxCv::toCv(ofImageEdge);
-//        cv::Mat mat1 = cv::Mat(riversSmallSize_w, riversSmallSize_h, CV_LOAD_IMAGE_GRAYSCALE, edgeRivers[i].getPixels());
-//        cv::Mat mat2 = cv::Mat(riversSmallSize_w, riversSmallSize_h, CV_LOAD_IMAGE_GRAYSCALE, ofImageEdge.getPixels());
-    
-//        ofLog(OF_LOG_NOTICE, "mat1 width:%lf, height:%lf", mat1.cols, mat1.rows);
-//        ofLog(OF_LOG_NOTICE, "mat2 width:%lf, height:%lf", mat2.cols, mat2.rows);
-//        ofLog(OF_LOG_NOTICE, "getCvImage width:%lf, height:%lf", edgeRivers[i].getCvImage()->width, edgeRivers[i].getCvImage()->height);
-//         ofLog(OF_LOG_NOTICE, "getCvImage width:%lf, height:%lf", ofImageEdge.getCvImage()->width, ofImageEdge.getCvImage()->height);
-        
-        result = cvCreateImage(cvSize(grayRivers[0].width - grayRivers_cut.width + 1, grayRivers[0].height - grayRivers_cut.height + 1), 32, 1);
-        cvMatchTemplate(grayRivers[0].getCvImage(), grayRivers_cut.getCvImage(), result, CV_TM_CCORR_NORMED);
-        
-//        cv::matchTemplate(mat1, mat2, result, CV_TM_CCOEFF);
-        //    cv::matchTemplate(mat1, mat2, result, CV_TM_SQDIFF_NORMED);
-        //    cv::matchTemplate(mat1, mat2, result, CV_TM_CCORR_NORMED);
-        //    cv::minMaxLoc(result, &minVal, NULL);
-//            cv::minMaxLoc(result, NULL, &maxVal);
         CvPoint minLoc, maxLoc;
         cvMinMaxLoc(result, &minVal, &maxVal, &minLoc, &maxLoc, 0);
         
-        //    ofLog(OF_LOG_NOTICE, "minVal: %lf", minVal);
+        subjectLocation.x = maxLoc.x;
+        subjectLocation.y = maxLoc.y;
+        
         ofLog(OF_LOG_NOTICE, "%d番目のminVal: %lf", i, minVal);
         ofLog(OF_LOG_NOTICE, "%d番目のmaxVal: %lf", i, maxVal);
-        ofLog(OF_LOG_NOTICE, "%d番目のminLoc: (%lf,%lf)", i, minLoc.x, minLoc.y);
-        ofLog(OF_LOG_NOTICE, "%d番目のmaxLoc: (%lf,%lf)", i, maxLoc.x, maxLoc.y);
+        ofLog(OF_LOG_NOTICE, "%d番目のminLoc: (%d,%d)", i, minLoc.x, minLoc.y);
+        ofLog(OF_LOG_NOTICE, "%d番目のmaxLoc: (%d,%d)", i, maxLoc.x, maxLoc.y);
         if(mostmaxVal < maxVal){
             mostmaxVal = maxVal;
             mostmaxIndex = i;
@@ -302,13 +348,24 @@ void ofApp::matching(){
 }
 
 void ofApp::showMatchImage(){
+    
+    //マッチングポイント描画
+    if(ofGetFrameNum()%60 <= 30) {
+        ofSetColor(10, 200, 200);
+    }else {
+        ofSetColor(200, 10, 200);
+    }
+    ofNoFill();
+    ofRect(450+subjectLocation.x/3, 200+subjectLocation.y/3, cutFrame.width/3, cutFrame.height/3);
+    
+    ofSetHexColor(0xffffff);
+    //マッチング結果出力
     showRiver = grayRivers[mostmaxIndex];
     showRiver.resize(riversSmallSize_w/3, riversSmallSize_h/3);
     showRiver.draw(450, 200);
     
-//    showRiver = edgeRivers[mostmaxIndex];
-//    showRiver.resize(riversSmallSize_w/3, riversSmallSize_h/3);
-//    showRiver.draw(450, 200);
+//    grayRivBor.resize(grayRivBor.width/3, grayRivBor.height/3);
+//    grayRivBor.draw(450, 200);
 }
 
 //--------------------------------------------------------------
@@ -317,6 +374,9 @@ void ofApp::keyPressed(int key){
         case OF_KEY_RETURN:
             capturedEdge = edgeImage;
             flagDrawimage = true;
+            
+            //切り抜き
+            cutCapturedImage();
             
             //マッチング
             matching();
@@ -327,6 +387,7 @@ void ofApp::keyPressed(int key){
             isMatchCompleted = false;
             flagDrawimage = false;
             count = 0;
+            count_mapshowing = 0;
             dx = 0;
             break;
         

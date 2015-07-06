@@ -14,6 +14,11 @@
 		250A95BA26587BE85DB0A353 /* ofxCvColorImage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CE9C7160245B19131DAE6128 /* ofxCvColorImage.cpp */; };
 		311DF864378748129984EA1D /* Kalman.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 77A1A692522820F935B58762 /* Kalman.cpp */; };
 		45CC483A999BF1065A6B926C /* Distance.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9DBD717072C35D324E101669 /* Distance.cpp */; };
+		55E0D3281B4687BE003B7CD8 /* ArduinoReceiver.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 55E0D3261B4687BE003B7CD8 /* ArduinoReceiver.cpp */; };
+		55E0D3301B4A4A13003B7CD8 /* GoogleMapViewer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 55E0D32E1B4A4A13003B7CD8 /* GoogleMapViewer.cpp */; };
+		55E0D3BB1B4A4BB5003B7CD8 /* Awesomium.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55E0D3BA1B4A4BB5003B7CD8 /* Awesomium.framework */; };
+		55E0D4431B4A5281003B7CD8 /* README.md in Sources */ = {isa = PBXBuildFile; fileRef = 55E0D4391B4A5281003B7CD8 /* README.md */; };
+		55E0D4441B4A5281003B7CD8 /* ofxAwesomium.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 55E0D43B1B4A5281003B7CD8 /* ofxAwesomium.cpp */; };
 		5CC34D433F5806179935B89D /* Flow.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 03A75A648BC4CF1D9DEDD0CE /* Flow.cpp */; };
 		63020F16C7E8DED980111241 /* ofxCvImage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C6151136D101F857DAE12722 /* ofxCvImage.cpp */; };
 		6AABAB39E82AF5CFEA23A205 /* ContourFinder.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5FBB4A8427353AED09174BE5 /* ContourFinder.cpp */; };
@@ -103,6 +108,17 @@
 		45F38573A0B0DEEC8BBC7A2C /* simplex_downhill.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 30; name = simplex_downhill.h; path = ../../../addons/ofxOpenCv/libs/opencv/include/opencv2/flann/simplex_downhill.h; sourceTree = SOURCE_ROOT; };
 		49EFFCF36CF194CCE0E1FAAB /* kdtree_index.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 30; name = kdtree_index.h; path = ../../../addons/ofxOpenCv/libs/opencv/include/opencv2/flann/kdtree_index.h; sourceTree = SOURCE_ROOT; };
 		516717F84C0146512C47A3EC /* ofxCvHaarFinder.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 30; name = ofxCvHaarFinder.h; path = ../../../addons/ofxOpenCv/src/ofxCvHaarFinder.h; sourceTree = SOURCE_ROOT; };
+		55E0D3261B4687BE003B7CD8 /* ArduinoReceiver.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ArduinoReceiver.cpp; sourceTree = "<group>"; };
+		55E0D3271B4687BE003B7CD8 /* ArduinoReceiver.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ArduinoReceiver.h; sourceTree = "<group>"; };
+		55E0D32E1B4A4A13003B7CD8 /* GoogleMapViewer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = GoogleMapViewer.cpp; sourceTree = "<group>"; };
+		55E0D32F1B4A4A13003B7CD8 /* GoogleMapViewer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GoogleMapViewer.h; sourceTree = "<group>"; };
+		55E0D3BA1B4A4BB5003B7CD8 /* Awesomium.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Awesomium.framework; path = ../../../../../../../Library/Frameworks/Awesomium.framework; sourceTree = "<group>"; };
+		55E0D3C31B4A5280003B7CD8 /* .gitignore */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
+		55E0D3C41B4A5280003B7CD8 /* addon_config.mk */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = addon_config.mk; sourceTree = "<group>"; };
+		55E0D4381B4A5281003B7CD8 /* LICENSE */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
+		55E0D4391B4A5281003B7CD8 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		55E0D43B1B4A5281003B7CD8 /* ofxAwesomium.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ofxAwesomium.cpp; sourceTree = "<group>"; };
+		55E0D43C1B4A5281003B7CD8 /* ofxAwesomium.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ofxAwesomium.h; sourceTree = "<group>"; };
 		58140E0F92D37844E9C8883D /* Calibration.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 30; name = Calibration.h; path = ../../../addons/ofxCv/libs/ofxCv/include/ofxCv/Calibration.h; sourceTree = SOURCE_ROOT; };
 		586A8EC141BDFA82B3B0518C /* config.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 30; name = config.h; path = ../../../addons/ofxOpenCv/libs/opencv/include/opencv2/flann/config.h; sourceTree = SOURCE_ROOT; };
 		59626D03C690200AD4E8B3A6 /* ml.hpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 30; name = ml.hpp; path = ../../../addons/ofxOpenCv/libs/opencv/include/opencv2/ml/ml.hpp; sourceTree = SOURCE_ROOT; };
@@ -237,6 +253,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				55E0D3BB1B4A4BB5003B7CD8 /* Awesomium.framework in Frameworks */,
 				E7F985F815E0DEA3003869B5 /* Accelerate.framework in Frameworks */,
 				E7E077E815D3B6510020DFD4 /* QTKit.framework in Frameworks */,
 				E4EB6799138ADC1D00A09F29 /* GLUT.framework in Frameworks */,
@@ -422,6 +439,46 @@
 			name = gpu;
 			sourceTree = "<group>";
 		};
+		55E0D3BC1B4A5100003B7CD8 /* Arduino */ = {
+			isa = PBXGroup;
+			children = (
+				55E0D3261B4687BE003B7CD8 /* ArduinoReceiver.cpp */,
+				55E0D3271B4687BE003B7CD8 /* ArduinoReceiver.h */,
+			);
+			name = Arduino;
+			sourceTree = "<group>";
+		};
+		55E0D3BD1B4A5113003B7CD8 /* Map */ = {
+			isa = PBXGroup;
+			children = (
+				55E0D32E1B4A4A13003B7CD8 /* GoogleMapViewer.cpp */,
+				55E0D32F1B4A4A13003B7CD8 /* GoogleMapViewer.h */,
+			);
+			name = Map;
+			sourceTree = "<group>";
+		};
+		55E0D3C21B4A5280003B7CD8 /* ofxAwesomium */ = {
+			isa = PBXGroup;
+			children = (
+				55E0D3C31B4A5280003B7CD8 /* .gitignore */,
+				55E0D3C41B4A5280003B7CD8 /* addon_config.mk */,
+				55E0D4381B4A5281003B7CD8 /* LICENSE */,
+				55E0D4391B4A5281003B7CD8 /* README.md */,
+				55E0D43A1B4A5281003B7CD8 /* src */,
+			);
+			name = ofxAwesomium;
+			path = ../../../addons/ofxAwesomium;
+			sourceTree = "<group>";
+		};
+		55E0D43A1B4A5281003B7CD8 /* src */ = {
+			isa = PBXGroup;
+			children = (
+				55E0D43B1B4A5281003B7CD8 /* ofxAwesomium.cpp */,
+				55E0D43C1B4A5281003B7CD8 /* ofxAwesomium.h */,
+			);
+			path = src;
+			sourceTree = "<group>";
+		};
 		6025FAF6414C2CA589764D26 /* ofxCv */ = {
 			isa = PBXGroup;
 			children = (
@@ -548,6 +605,7 @@
 		BB4B014C10F69532006C3DED /* addons */ = {
 			isa = PBXGroup;
 			children = (
+				55E0D3C21B4A5280003B7CD8 /* ofxAwesomium */,
 				A0B90D3B0ADB9C1716816714 /* ofxOpenCv */,
 				6025FAF6414C2CA589764D26 /* ofxCv */,
 			);
@@ -671,6 +729,7 @@
 		E4B69B4A0A3A1720003C02F2 = {
 			isa = PBXGroup;
 			children = (
+				55E0D3BA1B4A4BB5003B7CD8 /* Awesomium.framework */,
 				E4B6FCAD0C3E899E008CF71C /* openFrameworks-Info.plist */,
 				E4EB6923138AFD0F00A09F29 /* Project.xcconfig */,
 				E4B69E1C0A3A1BDC003C02F2 /* src */,
@@ -687,6 +746,8 @@
 				E4B69E1D0A3A1BDC003C02F2 /* main.cpp */,
 				E4B69E1E0A3A1BDC003C02F2 /* ofApp.cpp */,
 				E4B69E1F0A3A1BDC003C02F2 /* ofApp.h */,
+				55E0D3BC1B4A5100003B7CD8 /* Arduino */,
+				55E0D3BD1B4A5113003B7CD8 /* Map */,
 			);
 			path = src;
 			sourceTree = SOURCE_ROOT;
@@ -808,8 +869,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				E4B69E200A3A1BDC003C02F2 /* main.cpp in Sources */,
+				55E0D3301B4A4A13003B7CD8 /* GoogleMapViewer.cpp in Sources */,
 				E4B69E210A3A1BDC003C02F2 /* ofApp.cpp in Sources */,
 				250A95BA26587BE85DB0A353 /* ofxCvColorImage.cpp in Sources */,
+				55E0D4431B4A5281003B7CD8 /* README.md in Sources */,
+				55E0D4441B4A5281003B7CD8 /* ofxAwesomium.cpp in Sources */,
 				1D5F3298C2FA073628012944 /* ofxCvContourFinder.cpp in Sources */,
 				169D3C72FDE6C5590A1616F5 /* ofxCvFloatImage.cpp in Sources */,
 				FB09C6B2A1DA0EA217240CB8 /* ofxCvGrayscaleImage.cpp in Sources */,
@@ -821,6 +885,7 @@
 				EBCDE831EFAE08274E799C97 /* Calibration.cpp in Sources */,
 				6AABAB39E82AF5CFEA23A205 /* ContourFinder.cpp in Sources */,
 				45CC483A999BF1065A6B926C /* Distance.cpp in Sources */,
+				55E0D3281B4687BE003B7CD8 /* ArduinoReceiver.cpp in Sources */,
 				5CC34D433F5806179935B89D /* Flow.cpp in Sources */,
 				2023EF517ED2D8B397511D4B /* Helpers.cpp in Sources */,
 				311DF864378748129984EA1D /* Kalman.cpp in Sources */,
@@ -989,6 +1054,7 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(FRAMEWORK_SEARCH_PATHS_QUOTED_FOR_TARGET_1)",
+					"$(LOCAL_LIBRARY_DIR)/Frameworks",
 				);
 				FRAMEWORK_SEARCH_PATHS_QUOTED_FOR_TARGET_1 = "\"$(SRCROOT)/../../../libs/glut/lib/osx\"";
 				GCC_DYNAMIC_NO_PIC = NO;
@@ -1076,6 +1142,7 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(FRAMEWORK_SEARCH_PATHS_QUOTED_FOR_TARGET_1)",
+					"$(LOCAL_LIBRARY_DIR)/Frameworks",
 				);
 				FRAMEWORK_SEARCH_PATHS_QUOTED_FOR_TARGET_1 = "\"$(SRCROOT)/../../../libs/glut/lib/osx\"";
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;

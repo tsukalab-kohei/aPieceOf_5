@@ -4,9 +4,11 @@
 #include "ofxOpenCV.h"
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
-//#include <gl/ofGLRenderer.cpp>
 #include "ofxCv.h"
 #include "Utilities.h"
+#include "ofEvents.h"
+#include "ArduinoReceiver.h"
+#include "GoogleMapViewer.h"
 
 class ofApp : public ofBaseApp{
     
@@ -16,9 +18,17 @@ public:
     void draw();
     
     //custom
-    void showEarth();
+    void captureImage();
+    void diffCapturedImage();
+    void cutCapturedImage();
+    void showEarth(float x, float y, float z, float r);
     void matching();
     void showMatchImage();
+    void classifyDetectedPoint();
+    
+    //Arduino
+    void setupArduino(const int &version);
+    void updateArduino();
     
     void keyPressed(int key);
     void keyReleased(int key);
@@ -41,7 +51,6 @@ public:
     
     int threshold;
     
-    int count;
     int dx, dy;
     
     double minVal;
@@ -54,17 +63,21 @@ public:
     float cut_w;
     float cut_h;
     
-    ofRectangle cutFrame;
+    float cutW;
+    float cutH;
     
-    string areaName[6] = {"South America", "Europe", "Africa", "Australia", "North America", "Asia"};
+    ofPoint subjectLocation;
+    
+    ofRectangle cutFrame;
     
     ofSoundPlayer captureSound;
     ofVideoGrabber videoGrabber;
     
-    ofImage capImage;
-    ofImage capBg;
+    ofImage bgImage;
     ofImage riversImage[6];
+    ofImage rivborImage;
     ofImage resultImage[6];
+    ofImage testImage;
     
     ofxCvColorImage colorBg;
     ofxCvColorImage videoImage;
@@ -73,11 +86,16 @@ public:
     ofxCvGrayscaleImage grayImage;
     ofxCvGrayscaleImage grayRivers[6];
     ofxCvGrayscaleImage grayRivers_cut; //for test
+    ofxCvGrayscaleImage grayRivBor;
+    ofxCvGrayscaleImage grayTestImage;
     ofxCvGrayscaleImage grayBg;
     ofxCvGrayscaleImage grayDiff;
+    ofxCvGrayscaleImage grayCutImage;
+    
     ofxCvGrayscaleImage edgeImage;
     ofxCvGrayscaleImage edgeRivers[6];
     ofxCvGrayscaleImage edgeRivers_cut; // for test
+    ofxCvGrayscaleImage grayCutEdge; //切り抜いた掌画像の輪郭
     ofxCvGrayscaleImage capturedEdge;
     ofxCvGrayscaleImage showRiver;
     ofxCvGrayscaleImage ofImageEdge;
@@ -86,8 +104,10 @@ public:
     ofImage earth;
     ofImage earth2;
     GLUquadricObj *quadric;
+    ofSpherePrimitive sphere;
     
     ofxCvContourFinder contourFinder;
+    ofxCvContourFinder contourTest;
     
     cv::Mat matImg;
     cv::Mat matImg2;
@@ -108,6 +128,21 @@ public:
     cv::Ptr<cv::DescriptorMatcher> matcher;
     std::vector<cv::DMatch> dmatch;
     
+    //flag
     bool flagDrawimage;
     bool isMatchCompleted;
+    
+    //counter
+    int count;
+    int count_mapshowing;
+
+    //Arduino
+    ArduinoReceiver ar;
+    ofArduino arduino;
+    bool isSetupArduino;
+    
+    //Google Map
+    GoogleMapViewer gMapView;
+    string areaList[6] = {"southAmerica", "europe", "africa", "oceania", "northAmerica", "asia"};
+    string currentArea;
 };
