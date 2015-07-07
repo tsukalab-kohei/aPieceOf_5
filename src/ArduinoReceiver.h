@@ -20,7 +20,9 @@ public:
     void update();
     
     int data;
+    int data_str;
     unsigned char bytes[8];
+    bool isRotated;
 private:
     ofSerial serial;
 };

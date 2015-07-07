@@ -26,6 +26,7 @@ public:
     void showMatchImage();
     void classifyDetectedPoint();
     void reset();
+    void shift();
     
     //Arduino
     void setupArduino(const int &version);

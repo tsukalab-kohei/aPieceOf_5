@@ -119,8 +119,12 @@ void ofApp::update(){
     }
     
     //Serial
-    if (ofGetFrameNum() > 60 * 5) {
-//            ar.update();
+    if ((ofGetFrameNum() >= 60*5)&&(ofGetFrameNum() % 600 == 0)) {
+            ar.update();
+        if (ar.isRotated) {
+            shift();
+            ar.isRotated = false;
+        }
         //    arduino.update();
     }
     
@@ -377,6 +381,27 @@ void ofApp::reset() {
     dx = 0;
 }
 
+//検索範囲変更
+void ofApp::shift() {
+    reset();
+    flagDrawimage = true;
+    
+    //切り抜き
+    cutCapturedImage();
+    
+    //検索範囲変更
+    currentArea_index++;
+    if(currentArea_index >= 6) {
+        currentArea_index = currentArea_index % 6;
+    }
+    currentArea_name = areaList[currentArea_index];
+    ofLog(OF_LOG_NOTICE, "KeyPressed currentArea_index: %d", currentArea_index);
+    
+    //マッチング
+    matching();
+    captureSound.play();
+}
+
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key){
     switch (key){
@@ -399,6 +424,9 @@ void ofApp::keyPressed(int key){
         case OF_KEY_SHIFT:
             reset();
             flagDrawimage = true;
+            
+            //切り抜き
+            cutCapturedImage();
             
             //検索範囲変更
             currentArea_index++;
