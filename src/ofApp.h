@@ -85,11 +85,12 @@ public:
     ofxCvColorImage videoImage;
     
     ofxCvColorImage colorRivers[6];
-    ofxCvGrayscaleImage grayImage;
+    ofxCvGrayscaleImage grayImage_hide; //カメラ掌画像
+    ofxCvGrayscaleImage grayImage_show; //カメラ掌画像
     ofxCvGrayscaleImage grayRivers[6];
     ofxCvGrayscaleImage grayRivers_cut; //for test
     ofxCvGrayscaleImage grayRivBor;
-    ofxCvGrayscaleImage grayTestImage;
+    ofxCvGrayscaleImage grayTestImage; //テスト掌画像
     ofxCvGrayscaleImage grayBg;
     ofxCvGrayscaleImage grayDiff;
     ofxCvGrayscaleImage grayCutImage;

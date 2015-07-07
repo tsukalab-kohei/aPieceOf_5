@@ -45,7 +45,8 @@ void ofApp::setup(){
     
     //領域確保
     videoImage.allocate(cameraSmallSize_w, cameraSmallSize_h);
-    grayImage.allocate(cameraSmallSize_w, cameraSmallSize_h);
+    grayImage_hide.allocate(cameraSmallSize_w, cameraSmallSize_h); //カメラ掌画像
+    grayImage_show.allocate(cameraSmallSize_w, cameraSmallSize_h); //カメラ掌画像
     edgeImage.allocate(cameraSmallSize_w, cameraSmallSize_h);
     grayDiff.allocate(cameraSmallSize_w, cameraSmallSize_h);
     
@@ -156,11 +157,6 @@ void ofApp::draw(){
     ofBackground(0, 0, 0);
     ofSetHexColor(0xffffff);
     
-    //Serial
-    if(ofGetFrameNum()%60) {
-        ofDrawBitmapString(ofToString(ar.data), 500, 600);
-    }
-    
 //    ofSetColor(200, 10, 200);
 //    ofNoFill();
 //    ofRect(20+cut_x, 20+cameraSmallSize_h+100+cut_y, cut_w, cut_h);
@@ -210,13 +206,20 @@ void ofApp::draw(){
                     //矩形
                     ofSetColor(200, 10, 200);
                     ofNoFill();
-                    float w = grayTestImage.width/3;
-                    ofRect(50 + grayTestImage.width/2 - w/2, 50 + grayTestImage.height/2 - w/2, w, w);
+                    //テスト用
+//                    float w = grayTestImage.width/3;
+//                    ofRect(50 + grayTestImage.width/2 - w/2, 50 + grayTestImage.height/2 - w/2, w, w);
+                    float w = grayImage_show.width/3;
+                    ofRect(50 + grayImage_show.width/2 - w/2, 50 + grayImage_show.height/2 - w/2, w, w);
                     
                     //掌全体
                     ofSetColor(0xffffff);
-                    grayTestImage.resize(2448/10, 3264/10);
-                    grayTestImage.draw(50, 50);
+                    //テスト用
+//                    grayTestImage.resize(2448/10, 3264/10);
+//                    grayTestImage.draw(50, 50);
+                    grayImage_show.draw(50, 50);
+                    
+                    
                     //
                     //            //blobs
                     //            ofLog(OF_LOG_NOTICE, "nBlobs:%d", contourTest.nBlobs);
@@ -255,14 +258,15 @@ void ofApp::showEarth(float x, float y, float z, float r){
     gluSphere(quadric, r, 200, 200);
 }
 
+//
 void ofApp::captureImage() {
     videoImage.setFromPixels(videoGrabber.getPixels(), cameraSmallSize_w, cameraSmallSize_h);
-    grayImage = videoImage;
+    grayImage_hide = videoImage;
     edgeImage = videoImage;
     
     //エッジ抽出
-    cvSmooth(grayImage.getCvImage(), grayImage.getCvImage());
-    cvCanny(grayImage.getCvImage(), edgeImage.getCvImage(), 15, 70);
+    cvSmooth(grayImage_hide.getCvImage(), grayImage_hide.getCvImage());
+    cvCanny(grayImage_hide.getCvImage(), edgeImage.getCvImage(), 15, 70);
 }
 
 //背景差分
@@ -276,19 +280,28 @@ void ofApp::diffCapturedImage() {
 
 //切り抜き
 void ofApp::cutCapturedImage() {
-    //掌画像　初期設定
-    testImage.loadImage("./palm.jpg");
-    testImage.setImageType(OF_IMAGE_GRAYSCALE);
-    grayTestImage.allocate(testImage.width, testImage.height);
-    grayTestImage.setFromPixels(testImage.getPixels(), testImage.width, testImage.height);
-    ofLog(OF_LOG_NOTICE, "grayTestImage(%d,%d)", grayTestImage.width, grayTestImage.height);
+    grayImage_show = grayImage_hide;
     
-    cutW = 2448/3;
+    //テスト用
+//    testImage.loadImage("./palm.jpg");
+//    testImage.setImageType(OF_IMAGE_GRAYSCALE);
+//    grayTestImage.allocate(testImage.width, testImage.height);
+//    grayTestImage.setFromPixels(testImage.getPixels(), testImage.width, testImage.height);
+//    ofLog(OF_LOG_NOTICE, "grayTestImage(%d,%d)", grayTestImage.width, grayTestImage.height);
+    
+    //テスト用
+//    cutW = 2448/3;
+    cutW = cameraSize_w/3;
     cutH = cutW;
     grayCutImage.allocate(cutW, cutH);
-    grayTestImage.setROI(grayTestImage.width/2 - cutW/2, grayTestImage.height/2 - cutH/2, cutW, cutH);
-    grayCutImage = grayTestImage;
-    grayTestImage.resetROI();
+    
+    //テスト用
+//    grayTestImage.setROI(grayTestImage.width/2 - cutW/2, grayTestImage.height/2 - cutH/2, cutW, cutH);
+//    grayCutImage = grayTestImage;
+//    grayTestImage.resetROI();
+    grayImage_show.setROI(grayImage_show.width/2 - cutW/2, grayImage_show.height/2 - cutH/2, cutW, cutH);
+    grayCutImage = grayImage_show;
+    grayImage_show.resetROI();
     
     grayCutImage.resize(grayCutImage.width/4, grayCutImage.height/4);
     
@@ -318,15 +331,14 @@ void ofApp::matching(){
     grayRivers[0].setROI(cutFrame.x, cutFrame.y, cutFrame.width, cutFrame.height);
     grayRivers_cut = grayRivers[0];
     grayRivers[0].resetROI();
-    
 
     //blobs
     contourFinder.findContours(ofImageEdge, 20, (cut_w*cut_h), 10, true);
         
         result = cvCreateImage(cvSize(grayRivers[currentArea_index].width - grayRivers_cut.width + 1, grayRivers[currentArea_index].height - grayRivers_cut.height + 1), 32, 1);
-//        cvMatchTemplate(grayRivers[i].getCvImage(), grayRivers_cut.getCvImage(), result, CV_TM_CCORR_NORMED);
         grayCutImage.resize(100, 100);
-//        cvMatchTemplate(grayRivBor.getCvImage(), grayCutImage.getCvImage(), result, CV_TM_CCORR_NORMED);
+    
+        //template matching
         cvMatchTemplate(grayRivers[currentArea_index].getCvImage(), grayCutImage.getCvImage(), result, CV_TM_CCORR_NORMED);
         
         CvPoint minLoc, maxLoc;
