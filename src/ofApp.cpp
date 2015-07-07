@@ -5,8 +5,8 @@
 //--------------------------------------------------------------
 void ofApp::setup(){
     ofEnableAlphaBlending();
-    ofSetFullscreen(true);
-    ofHideCursor();
+//    ofSetFullscreen(true);
+//    ofHideCursor();
     
     //音声ファイル
     captureSound.loadSound("capture.wav");
@@ -105,7 +105,9 @@ void ofApp::setup(){
     
     //Google Map
     gMapView.setup();
-    currentArea = areaList[0]; //南米スタート
+    currentArea_index = 0;
+    currentArea_name = areaList[currentArea_index]; //南米スタート
+
 }
 
 //--------------------------------------------------------------
@@ -197,8 +199,6 @@ void ofApp::draw(){
 //                            name << "matched " << areaList[mostmaxIndex] << endl;
 //                            ofDrawBitmapString(name.str(), 450, 150);
                         }else {
-                            int indexOfHtml = gMapView.classifyDetectedPoint(subjectLocation.x, subjectLocation.y);
-                            gMapView.loadMap(, indexOfHtml);
                             gMapView.showMap();
                         }
                     }
@@ -318,15 +318,12 @@ void ofApp::matching(){
 
     //blobs
     contourFinder.findContours(ofImageEdge, 20, (cut_w*cut_h), 10, true);
-    
-    for (int i=0; i<1; i++) {
         
-        result = cvCreateImage(cvSize(grayRivers[i].width - grayRivers_cut.width + 1, grayRivers[i].height - grayRivers_cut.height + 1), 32, 1);
+        result = cvCreateImage(cvSize(grayRivers[currentArea_index].width - grayRivers_cut.width + 1, grayRivers[currentArea_index].height - grayRivers_cut.height + 1), 32, 1);
 //        cvMatchTemplate(grayRivers[i].getCvImage(), grayRivers_cut.getCvImage(), result, CV_TM_CCORR_NORMED);
         grayCutImage.resize(100, 100);
-//        grayRivBor.resize(grayRivBor.width/2, grayRivBor.height/2);
 //        cvMatchTemplate(grayRivBor.getCvImage(), grayCutImage.getCvImage(), result, CV_TM_CCORR_NORMED);
-        cvMatchTemplate(grayRivers[i].getCvImage(), grayCutImage.getCvImage(), result, CV_TM_CCORR_NORMED);
+        cvMatchTemplate(grayRivers[currentArea_index].getCvImage(), grayCutImage.getCvImage(), result, CV_TM_CCORR_NORMED);
         
         CvPoint minLoc, maxLoc;
         cvMinMaxLoc(result, &minVal, &maxVal, &minLoc, &maxLoc, 0);
@@ -334,15 +331,19 @@ void ofApp::matching(){
         subjectLocation.x = maxLoc.x;
         subjectLocation.y = maxLoc.y;
         
-        ofLog(OF_LOG_NOTICE, "%d番目のminVal: %lf", i, minVal);
-        ofLog(OF_LOG_NOTICE, "%d番目のmaxVal: %lf", i, maxVal);
-        ofLog(OF_LOG_NOTICE, "%d番目のminLoc: (%d,%d)", i, minLoc.x, minLoc.y);
-        ofLog(OF_LOG_NOTICE, "%d番目のmaxLoc: (%d,%d)", i, maxLoc.x, maxLoc.y);
-        if(mostmaxVal < maxVal){
-            mostmaxVal = maxVal;
-            mostmaxIndex = i;
-        }
-    }
+        //load the google map
+        int indexOfHtml = gMapView.classifyDetectedPoint(subjectLocation.x, subjectLocation.y);
+        gMapView.loadMap(currentArea_name, indexOfHtml);
+        
+//        ofLog(OF_LOG_NOTICE, "%d番目のminVal: %lf", i, minVal);
+//        ofLog(OF_LOG_NOTICE, "%d番目のmaxVal: %lf", i, maxVal);
+        ofLog(OF_LOG_NOTICE, "%d番目のminLoc: (%d,%d)", currentArea_index, minLoc.x, minLoc.y);
+        ofLog(OF_LOG_NOTICE, "%d番目のmaxLoc: (%d,%d)", currentArea_index, maxLoc.x, maxLoc.y);
+//        if(mostmaxVal < maxVal){
+//            mostmaxVal = maxVal;
+//            mostmaxIndex = i;
+//        }
+    
     ofLog(OF_LOG_NOTICE, "mostmaxVal:%lf, index:%d", mostmaxVal, mostmaxIndex);
     isMatchCompleted = true;
 }
@@ -359,13 +360,21 @@ void ofApp::showMatchImage(){
     ofRect(450+subjectLocation.x/3, 200+subjectLocation.y/3, cutFrame.width/3, cutFrame.height/3);
     
     ofSetHexColor(0xffffff);
-    //マッチング結果出力
-    showRiver = grayRivers[mostmaxIndex];
+//    showRiver = grayRivers[currentArea_index];
     showRiver.resize(riversSmallSize_w/3, riversSmallSize_h/3);
-    showRiver.draw(450, 200);
+//    showRiver.draw(450, 200);
+    grayRivers[currentArea_index].draw(450, 200, riversSmallSize_w/3, riversSmallSize_h/3);
     
 //    grayRivBor.resize(grayRivBor.width/3, grayRivBor.height/3);
 //    grayRivBor.draw(450, 200);
+}
+
+void ofApp::reset() {
+    isMatchCompleted = false;
+    flagDrawimage = false;
+    count = 0;
+    count_mapshowing = 0;
+    dx = 0;
 }
 
 //--------------------------------------------------------------
@@ -384,13 +393,25 @@ void ofApp::keyPressed(int key){
             break;
             
         case OF_KEY_BACKSPACE:
-            isMatchCompleted = false;
-            flagDrawimage = false;
-            count = 0;
-            count_mapshowing = 0;
-            dx = 0;
+            reset();
             break;
-        
+            
+        case OF_KEY_SHIFT:
+            reset();
+            flagDrawimage = true;
+            
+            //検索範囲変更
+            currentArea_index++;
+            if(currentArea_index >= 6) {
+                currentArea_index = currentArea_index % 6;
+            }
+            currentArea_name = areaList[currentArea_index];
+            ofLog(OF_LOG_NOTICE, "KeyPressed currentArea_index: %d", currentArea_index);
+            
+            //マッチング
+            matching();
+            captureSound.play();
+            break;
     }
 }
 

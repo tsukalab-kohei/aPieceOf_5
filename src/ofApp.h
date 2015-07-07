@@ -25,6 +25,7 @@ public:
     void matching();
     void showMatchImage();
     void classifyDetectedPoint();
+    void reset();
     
     //Arduino
     void setupArduino(const int &version);
@@ -144,5 +145,6 @@ public:
     //Google Map
     GoogleMapViewer gMapView;
     string areaList[6] = {"southAmerica", "europe", "africa", "oceania", "northAmerica", "asia"};
-    string currentArea;
+    string currentArea_name;
+    int currentArea_index;
 };
