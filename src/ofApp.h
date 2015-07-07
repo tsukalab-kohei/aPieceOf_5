@@ -21,10 +21,12 @@ public:
     void captureImage();
     void diffCapturedImage();
     void cutCapturedImage();
+    void findBlobs();
     void showEarth(float x, float y, float z, float r);
     void matching();
     void showMatchImage();
     void classifyDetectedPoint();
+    void start();
     void reset();
     void shift();
     
@@ -138,6 +140,7 @@ public:
     //counter
     int count;
     int count_mapshowing;
+    int pre_nBlobs;
 
     //Arduino
     ArduinoReceiver ar;

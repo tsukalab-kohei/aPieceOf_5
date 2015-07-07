@@ -5,7 +5,7 @@
 //--------------------------------------------------------------
 void ofApp::setup(){
     ofEnableAlphaBlending();
-//    ofSetFullscreen(true);
+    ofSetFullscreen(true);
 //    ofHideCursor();
     
     //音声ファイル
@@ -24,6 +24,7 @@ void ofApp::setup(){
     //counter
     count = 0;
     count_mapshowing = 0;
+    pre_nBlobs = 1;
     
     dx = 0;
     dy = 0;
@@ -48,6 +49,7 @@ void ofApp::setup(){
     grayImage_hide.allocate(cameraSmallSize_w, cameraSmallSize_h); //カメラ掌画像
     grayImage_show.allocate(cameraSmallSize_w, cameraSmallSize_h); //カメラ掌画像
     edgeImage.allocate(cameraSmallSize_w, cameraSmallSize_h);
+    grayBg.allocate(cameraSmallSize_w, cameraSmallSize_h);
     grayDiff.allocate(cameraSmallSize_w, cameraSmallSize_h);
     
     for(int i=0; i<6; i++){
@@ -117,10 +119,11 @@ void ofApp::update(){
     videoGrabber.update();
     if(videoGrabber.isFrameNew()){
         captureImage();
+        findBlobs();
     }
     
     //Serial
-    if ((ofGetFrameNum() >= 60*5)&&(ofGetFrameNum() % 600 == 0)) {
+    if ((ofGetFrameNum() >= 60*5)&&(ofGetFrameNum() % 120 == 0)) {
             ar.update();
         if (ar.isRotated) {
             shift();
@@ -160,12 +163,20 @@ void ofApp::draw(){
 //    ofSetColor(200, 10, 200);
 //    ofNoFill();
 //    ofRect(20+cut_x, 20+cameraSmallSize_h+100+cut_y, cut_w, cut_h);
-//
-    //camera
-//    edgeImage.draw(20, 20+cameraSmallSize_h+100);
     
     //エッジ
-    if(!flagDrawimage){
+    if(!flagDrawimage) {
+        //blobs
+        for (int i = 0; i < contourFinder.nBlobs; i++) {
+            contourFinder.blobs[i].draw(20, 20+cameraSmallSize_h+100);
+        }
+        ofSetHexColor(0xffffff);
+        
+        //camera
+        edgeImage.draw(20, 20+cameraSmallSize_h+100);
+//        grayImage_hide.draw(20, 20+cameraSmallSize_h+100, grayImage_hide.width, grayImage_hide.height);
+
+        
         showEarth(ofGetWidth()/2, ofGetHeight()/2, 0, 150);
     }else{
         
@@ -210,23 +221,15 @@ void ofApp::draw(){
 //                    float w = grayTestImage.width/3;
 //                    ofRect(50 + grayTestImage.width/2 - w/2, 50 + grayTestImage.height/2 - w/2, w, w);
                     float w = grayImage_show.width/3;
-                    ofRect(50 + grayImage_show.width/2 - w/2, 50 + grayImage_show.height/2 - w/2, w, w);
+                    ofRect(50 + grayImage_show.width/4 - w/4, 50+50 + grayImage_show.height/4 - w/4, w/2, w/2);
                     
                     //掌全体
                     ofSetColor(0xffffff);
                     //テスト用
 //                    grayTestImage.resize(2448/10, 3264/10);
 //                    grayTestImage.draw(50, 50);
-                    grayImage_show.draw(50, 50);
+                    grayImage_show.draw(50, 50, grayImage_show.width/1.5, grayImage_show.height/1.5);
                     
-                    
-                    //
-                    //            //blobs
-                    //            ofLog(OF_LOG_NOTICE, "nBlobs:%d", contourTest.nBlobs);
-                    //            for (int i = 0; i < contourTest.nBlobs; i++) {
-                    //                ofSetColor(255);
-                    //                contourTest.blobs[i].draw(100, 50+dx);
-                    //            }
                     
                     //            //切り抜き画像
                     //            ofSetColor(0xffffff);
@@ -239,6 +242,19 @@ void ofApp::draw(){
             
         }
     }
+}
+
+void ofApp::findBlobs() {
+    contourFinder.findContours(edgeImage, 50, grayImage_hide.width*grayImage_hide.height, 10, true);
+    ofLog(OF_LOG_NOTICE, "contourFinder.nBlobs: %d", contourFinder.nBlobs);
+    if (contourFinder.nBlobs > 3) {
+        start();
+    }else if (contourFinder.nBlobs == 0){
+        if (pre_nBlobs == contourFinder.nBlobs) {
+            reset();
+        }
+    }
+    pre_nBlobs = contourFinder.nBlobs;
 }
 
 void ofApp::showEarth(float x, float y, float z, float r){
@@ -261,6 +277,10 @@ void ofApp::showEarth(float x, float y, float z, float r){
 //
 void ofApp::captureImage() {
     videoImage.setFromPixels(videoGrabber.getPixels(), cameraSmallSize_w, cameraSmallSize_h);
+    
+    if (ofGetFrameNum() <= 60) {
+        grayBg = videoImage;
+    }
     grayImage_hide = videoImage;
     edgeImage = videoImage;
     
@@ -273,8 +293,8 @@ void ofApp::captureImage() {
 void ofApp::diffCapturedImage() {
     //背景との差分
     ofLog(OF_LOG_NOTICE, "grayBg(%d,%d)\n", grayBg.width, grayBg.height);
-    ofLog(OF_LOG_NOTICE, "grayTestImage(%d,%d)\n", grayTestImage.width, grayTestImage.height);
-    grayDiff.absDiff(grayBg, grayTestImage);
+    ofLog(OF_LOG_NOTICE, "grayTestImage(%d,%d)\n", grayImage_show.width, grayImage_show.height);
+    grayDiff.absDiff(grayBg, grayImage_show);
     grayDiff.threshold(threshold);
 }
 
@@ -333,8 +353,8 @@ void ofApp::matching(){
     grayRivers[0].resetROI();
 
     //blobs
-    contourFinder.findContours(ofImageEdge, 20, (cut_w*cut_h), 10, true);
-        
+//    contourFinder.findContours(ofImageEdge, 20, (cut_w*cut_h), 10, true);
+    
         result = cvCreateImage(cvSize(grayRivers[currentArea_index].width - grayRivers_cut.width + 1, grayRivers[currentArea_index].height - grayRivers_cut.height + 1), 32, 1);
         grayCutImage.resize(100, 100);
     
@@ -368,12 +388,13 @@ void ofApp::showMatchImage(){
     
     //マッチングポイント描画
     if(ofGetFrameNum()%60 <= 30) {
-        ofSetColor(10, 200, 200);
+        ofSetColor(255, 255, 255);
     }else {
-        ofSetColor(200, 10, 200);
+        ofSetColor(255, 20, 255);
     }
     ofNoFill();
     ofRect(450+subjectLocation.x/3, 200+subjectLocation.y/3, cutFrame.width/3, cutFrame.height/3);
+//    ofCircle(450+subjectLocation.x/3+cutFrame.width/6, 200+subjectLocation.y/3+cutFrame.height/6, 30);
     
     ofSetHexColor(0xffffff);
 //    showRiver = grayRivers[currentArea_index];
@@ -383,6 +404,20 @@ void ofApp::showMatchImage(){
     
 //    grayRivBor.resize(grayRivBor.width/3, grayRivBor.height/3);
 //    grayRivBor.draw(450, 200);
+}
+
+void ofApp::start() {
+    if (!flagDrawimage) {
+        capturedEdge = edgeImage;
+        flagDrawimage = true;
+        
+        //切り抜き
+        cutCapturedImage();
+        
+        //マッチング
+        matching();
+        captureSound.play();
+    }
 }
 
 void ofApp::reset() {
@@ -399,7 +434,7 @@ void ofApp::shift() {
     flagDrawimage = true;
     
     //切り抜き
-    cutCapturedImage();
+    //cutCapturedImage();
     
     //検索範囲変更
     currentArea_index++;
@@ -418,15 +453,7 @@ void ofApp::shift() {
 void ofApp::keyPressed(int key){
     switch (key){
         case OF_KEY_RETURN:
-            capturedEdge = edgeImage;
-            flagDrawimage = true;
-            
-            //切り抜き
-            cutCapturedImage();
-            
-            //マッチング
-            matching();
-            captureSound.play();
+            start();
             break;
             
         case OF_KEY_BACKSPACE:
@@ -434,23 +461,7 @@ void ofApp::keyPressed(int key){
             break;
             
         case OF_KEY_SHIFT:
-            reset();
-            flagDrawimage = true;
-            
-            //切り抜き
-            cutCapturedImage();
-            
-            //検索範囲変更
-            currentArea_index++;
-            if(currentArea_index >= 6) {
-                currentArea_index = currentArea_index % 6;
-            }
-            currentArea_name = areaList[currentArea_index];
-            ofLog(OF_LOG_NOTICE, "KeyPressed currentArea_index: %d", currentArea_index);
-            
-            //マッチング
-            matching();
-            captureSound.play();
+            shift();
             break;
     }
 }

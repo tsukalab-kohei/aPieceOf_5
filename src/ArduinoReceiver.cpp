@@ -16,7 +16,8 @@ ArduinoReceiver::ArduinoReceiver() {
 void ArduinoReceiver::setup(int modem, int rate) {
     serial.listDevices();
     vector <ofSerialDeviceInfo> deviceList = serial.getDeviceList();
-    serial.setup("/dev/cu.usbmodem1421", rate);
+//    serial.setup("/dev/cu.usbmodem1421", rate);
+    serial.setup(1, rate);
     
     isRotated = false;
 }
