@@ -10,14 +10,20 @@ void ofApp::setup(){
     
     //音声ファイル
     captureSound.loadSound("capture.wav");
+    transSound.loadSound("swing.mp3");
+//    transSound.setSpeed(transSound.getSpeed()*2);
+    
+//    bgmSound.loadSound("noise.mp3");
+//    bgmSound.setLoop(true);
+//    bgmSound.play();
     
     flagDrawimage = false;
     isMatchCompleted = false;
-    
+
     //背景差分
 //    threshold = 24;
 //    bgImage.loadImage("./background.jpg");
-//    testImage.setImageType(OF_IMAGE_GRAYSCALE);
+//    teetImage.setImageType(OF_IMAGE_GRAYSCALE);
 //    grayBg.setFromPixels(bgImage.getPixels(), bgImage.width, bgImage.height);
 //    grayDiff.allocate(bgImage.width/2, bgImage.height/2);
     
@@ -93,7 +99,9 @@ void ofApp::setup(){
     
     glEnable(GL_DEPTH_TEST); //enable depth comparisons and update the depth buffer
     ofDisableArbTex(); //needed for textures to work with gluSphere
-    earth.loadImage("earth6_blue.jpg");
+//    earth.loadImage("earth7_alpha.png");
+    earth.loadImage("earth6_blue_3.jpg");
+//    earth.loadImage("earth6_blue_2.jpg");
     
     //prepare quadric for sphere
     quadric = gluNewQuadric();
@@ -110,7 +118,6 @@ void ofApp::setup(){
     gMapView.setup();
     currentArea_index = 0;
     currentArea_name = areaList[currentArea_index]; //南米スタート
-
 }
 
 //--------------------------------------------------------------
@@ -158,7 +165,8 @@ void ofApp::updateArduino() {
 //--------------------------------------------------------------
 void ofApp::draw(){
     ofBackground(0, 0, 0);
-    ofSetHexColor(0xffffff);
+    
+//    ofSetHexColor(0xffffff);
     
 //    ofSetColor(200, 10, 200);
 //    ofNoFill();
@@ -166,18 +174,9 @@ void ofApp::draw(){
     
     //エッジ
     if(!flagDrawimage) {
-        //blobs
-        for (int i = 0; i < contourFinder.nBlobs; i++) {
-            contourFinder.blobs[i].draw(20, 20+cameraSmallSize_h+100);
-        }
-        ofSetHexColor(0xffffff);
+        showUserImage(ofGetWidth()/2 - cameraSize_w/2 + 1, ofGetHeight()/2 - cameraSmallSize_h/2 + 1, cameraSize_w, cameraSize_h);
         
-        //camera
-        edgeImage.draw(20, 20+cameraSmallSize_h+100);
-//        grayImage_hide.draw(20, 20+cameraSmallSize_h+100, grayImage_hide.width, grayImage_hide.height);
-
-        
-        showEarth(ofGetWidth()/2, ofGetHeight()/2, 0, 150);
+        showEarth(ofGetWidth()/2, ofGetHeight()/2, 500, 150, 80);
     }else{
         
 //        ofImageEdge.draw(400-dx, 100);
@@ -188,7 +187,7 @@ void ofApp::draw(){
             
             //キャプチャ後のアニメーション
             if(dx < 460){
-                showEarth(ofGetWidth()/2, ofGetHeight()/2, dx, 150);
+                showEarth(ofGetWidth()/2, ofGetHeight()/2, dx, 150, 250);
                 dx = dx + 10;
                 
             }else{
@@ -201,41 +200,43 @@ void ofApp::draw(){
                         ofDrawBitmapString(captureStr.str(), 500, 50);
                     }
                 }else{
+                    //矩形
+                    ofSetColor(200, 10, 200);
+                    ofNoFill();
+                    //テスト用
+                    //                    float w = grayTestImage.width/3;
+                    //                    ofRect(50 + grayTestImage.width/2 - w/2, 50 + grayTestImage.height/2 - w/2, w, w);
+                    float w = grayImage_show.width/3;
+                    ofRect(50 + grayImage_show.width/4 - w/4, 50+50 + grayImage_show.height/4 - w/4, w/2, w/2);
+                    
+                    //掌全体
+                    //テスト用
+//                  grayTestImage.resize(2448/10, 3264/10);
+//                  grayTestImage.draw(50, 50);
+                    showUserImage(50, 50, cameraSize_w, cameraSize_h);
+                    
+                    
                     if(isMatchCompleted){
                         count_mapshowing++;
                         if(count_mapshowing < 60*3) {
+                            ofSetColor(255, 255, 255, 255);
                             showMatchImage();
                             ofSetHexColor(0xffffff);
 //                            stringstream name;
 //                            name << "matched " << areaList[mostmaxIndex] << endl;
 //                            ofDrawBitmapString(name.str(), 450, 150);
+                            
+//                            showEarth(ofGetWidth()/2, ofGetHeight()/2, 500, 150, 80);
                         }else {
                             gMapView.showMap();
                         }
                     }
                     
-                    //矩形
-                    ofSetColor(200, 10, 200);
-                    ofNoFill();
-                    //テスト用
-//                    float w = grayTestImage.width/3;
-//                    ofRect(50 + grayTestImage.width/2 - w/2, 50 + grayTestImage.height/2 - w/2, w, w);
-                    float w = grayImage_show.width/3;
-                    ofRect(50 + grayImage_show.width/4 - w/4, 50+50 + grayImage_show.height/4 - w/4, w/2, w/2);
-                    
-                    //掌全体
-                    ofSetColor(0xffffff);
-                    //テスト用
-//                    grayTestImage.resize(2448/10, 3264/10);
-//                    grayTestImage.draw(50, 50);
-                    grayImage_show.draw(50, 50, grayImage_show.width/1.5, grayImage_show.height/1.5);
-                    
-                    
                     //            //切り抜き画像
                     //            ofSetColor(0xffffff);
                     //            grayCutImage.draw(400-dx, 50);
                     
-                    showEarth(200, ofGetHeight()/2 + 150, 0, 80);
+                    showEarth(200+30, ofGetHeight()/2 + 150, 0, 100, 255);
                 }
             }
         }else{
@@ -244,10 +245,25 @@ void ofApp::draw(){
     }
 }
 
+void ofApp::showUserImage(float x, float y, float w, float h) {
+    //blobs
+    for (int i = 0; i < contourFinder.nBlobs; i++) {
+        ofSetColor(20, 255, 255, 255);
+        contourFinder.blobs[i].draw(x, y);
+    }
+    
+    //camera
+    ofSetColor(255, 255, 255, 255);
+    grayImage_hide.draw(x, y);
+    
+    ofSetColor(255, 255, 255, 100);
+    edgeImage.draw(x, y);
+}
+
 void ofApp::findBlobs() {
     contourFinder.findContours(edgeImage, 50, grayImage_hide.width*grayImage_hide.height, 10, true);
     ofLog(OF_LOG_NOTICE, "contourFinder.nBlobs: %d", contourFinder.nBlobs);
-    if (contourFinder.nBlobs > 3) {
+    if (contourFinder.nBlobs > 30) {
         start();
     }else if (contourFinder.nBlobs == 0){
         if (pre_nBlobs == contourFinder.nBlobs) {
@@ -257,21 +273,27 @@ void ofApp::findBlobs() {
     pre_nBlobs = contourFinder.nBlobs;
 }
 
-void ofApp::showEarth(float x, float y, float z, float r){
+void ofApp::showEarth(float x, float y, float z, float r, int alpha){
     //球
+    ofSetColor(255, 255, 255, alpha-20);
     earth.getTextureReference().unbind();
     sphere.set(r, 20);
     sphere.setPosition(x, y, z);
     sphere.rotate(ofGetFrameNum(), 0, 1.0, 0);
     sphere.drawWireframe();
+    ofSetColor(255, 255, 255, alpha);
     
     //地球
+    ofPushMatrix();
     ofTranslate(x, y, z);
-    ofRotateY(ofGetFrameNum());
+    ofRotateY(ofGetFrameNum()/2);
     ofRotateX(-90);
     
     earth.getTextureReference().bind();
     gluSphere(quadric, r, 200, 200);
+    ofPopMatrix();
+    
+    ofSetColor(255, 255, 255);
 }
 
 //
@@ -393,14 +415,14 @@ void ofApp::showMatchImage(){
         ofSetColor(255, 20, 255);
     }
     ofNoFill();
-    ofRect(450+subjectLocation.x/3, 200+subjectLocation.y/3, cutFrame.width/3, cutFrame.height/3);
+    ofRect(500+subjectLocation.x/2, 50+subjectLocation.y/2, cutFrame.width/2, cutFrame.height/2);
 //    ofCircle(450+subjectLocation.x/3+cutFrame.width/6, 200+subjectLocation.y/3+cutFrame.height/6, 30);
     
-    ofSetHexColor(0xffffff);
+    ofSetColor(255, 255, 255, 255);
 //    showRiver = grayRivers[currentArea_index];
-    showRiver.resize(riversSmallSize_w/3, riversSmallSize_h/3);
+    showRiver.resize(riversSmallSize_w/2, riversSmallSize_h/2);
 //    showRiver.draw(450, 200);
-    grayRivers[currentArea_index].draw(450, 200, riversSmallSize_w/3, riversSmallSize_h/3);
+    grayRivers[currentArea_index].draw(500, 50, riversSmallSize_w/2, riversSmallSize_h/2);
     
 //    grayRivBor.resize(grayRivBor.width/3, grayRivBor.height/3);
 //    grayRivBor.draw(450, 200);
@@ -417,6 +439,7 @@ void ofApp::start() {
         //マッチング
         matching();
         captureSound.play();
+//        transSound.play();
     }
 }
 

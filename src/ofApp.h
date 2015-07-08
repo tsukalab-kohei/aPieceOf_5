@@ -22,7 +22,8 @@ public:
     void diffCapturedImage();
     void cutCapturedImage();
     void findBlobs();
-    void showEarth(float x, float y, float z, float r);
+    void showUserImage(float x, float y, float w, float h);
+    void showEarth(float x, float y, float z, float r, int alpha);
     void matching();
     void showMatchImage();
     void classifyDetectedPoint();
@@ -74,7 +75,11 @@ public:
     
     ofRectangle cutFrame;
     
+    //Sound
     ofSoundPlayer captureSound;
+    ofSoundPlayer bgmSound;
+    ofSoundPlayer transSound;
+    
     ofVideoGrabber videoGrabber;
     
     ofImage bgImage;

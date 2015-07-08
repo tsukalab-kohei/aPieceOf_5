@@ -11,6 +11,7 @@
 
 #include <stdio.h>
 #include "ofxAwesomium.h"
+#include "ofxOpenCv.h"
 
 class GoogleMapViewer {
     
@@ -19,10 +20,12 @@ public:
     void setup();
     void update();
     void loadMap(string area, int num);
+    void createEdgeImage();
     void showMap();
     int classifyDetectedPoint(float locX, float locY);
     
     ofxAwesomium browser;
+    ofxCvGrayscaleImage edgeImage;
 private:
     
 };
