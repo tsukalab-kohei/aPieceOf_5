@@ -263,7 +263,7 @@ void ofApp::showUserImage(float x, float y, float w, float h) {
 void ofApp::findBlobs() {
     contourFinder.findContours(edgeImage, 50, grayImage_hide.width*grayImage_hide.height, 10, true);
     ofLog(OF_LOG_NOTICE, "contourFinder.nBlobs: %d", contourFinder.nBlobs);
-    if (contourFinder.nBlobs > 30) {
+    if (contourFinder.nBlobs > 3) {
         start();
     }else if (contourFinder.nBlobs == 0){
         if (pre_nBlobs == contourFinder.nBlobs) {
@@ -412,7 +412,7 @@ void ofApp::showMatchImage(){
     if(ofGetFrameNum()%60 <= 30) {
         ofSetColor(255, 255, 255);
     }else {
-        ofSetColor(255, 20, 255);
+        ofSetColor(200, 20, 200);
     }
     ofNoFill();
     ofRect(500+subjectLocation.x/2, 50+subjectLocation.y/2, cutFrame.width/2, cutFrame.height/2);
